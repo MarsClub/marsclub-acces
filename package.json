@@ -1,0 +1,20 @@
+{
+  "name": "marsclub-acces",
+  "version": "1.0.0",
+  "description": "Identité et droits partagés des outils internes Mārs Clūb — une seule garde pour Hora, Fama et les suivants.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "tsc",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "vitest": "^4.1.10"
+  }
+}

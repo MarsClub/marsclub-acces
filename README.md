@@ -71,9 +71,44 @@ sur un écran, elle a probablement confondu capacités et pages.
    devient jamais public par oubli.
 4. Lire le cookie `mc_qui` côté serveur (cinq lignes de `next/headers` en
    Next) et poser les cookies avec `domaineCookies(host)`.
+5. **Créer sa sitemap `/plan`** — voir la règle ci-dessous. Elle se fait au
+   début, pas à la fin : c'est avec elle qu'on parcourt l'outil pour le
+   tester pendant qu'on le construit.
 
 Les liens personnels existants fonctionnent immédiatement : l'identité est
 déjà posée sur `.marsclub.fr`. Rien à redistribuer.
+
+## La sitemap, obligatoire dans chaque outil
+
+**Règle Roch du 20/08/2026.** Tout outil interne porte une page `/plan` qui
+liste **toutes** ses pages, réservée à la **direction** par une capacité
+`plan` dédiée — pas en réutilisant `reglages` : on peut vouloir ouvrir la
+carte sans ouvrir la mécanique.
+
+Elle est réservée à la direction pour une raison précise : elle donne la
+carte complète de l'outil, et les liens personnels qu'elle affiche **sont
+des accès** — ouvrir celui de quelqu'un, c'est voir l'outil comme lui.
+
+**Elle liste tout**, en particulier ce qu'aucun menu ne montre : les
+téléchargements (PDF, exports CSV), les pages à jeton, les portes
+(`/entrer`, la racine, `robots.txt`). Ce sont justement les routes qu'on
+oublie de garder et qu'on oublie de tester.
+
+**Rien n'y est écrit en dur** : les liens à jeton se lisent en base, et la
+capacité affichée à côté de chaque écran vient de la même grille que la
+garde. Une carte qui répète l'information à la main finit par la contredire.
+
+**Et elle se vérifie toute seule.** Un plan tenu à la main se périme au
+premier écran ajouté, sans que personne s'en aperçoive : une page absente
+n'affiche rien qui manque. Chaque outil porte donc un test qui compare les
+routes réellement présentes sur le disque aux chemins cités dans le plan,
+**dans les deux sens** — une page oubliée le fait échouer, un chemin cité
+qui n'existe plus aussi. Modèle à recopier :
+`marsclub-planning/src/app/(admin)/plan/plan.test.ts`.
+
+Ajouter un écran sans l'inscrire au plan casse alors la suite de tests, au
+même titre qu'un écran ajouté sans capacité est refusé par la garde. C'est
+ce qui fait la différence entre une règle et une intention.
 
 ### Deux pièges déjà rencontrés
 

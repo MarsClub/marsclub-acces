@@ -21,8 +21,10 @@ export {
   DUREE_IDENTITE_S,
   empreinte,
   lireIdentite,
+  lireIdentiteLaPlusRecente,
   memeChaine,
   signerIdentite,
+  valeursDuCookie,
   type Identite,
 } from './identite.js'
 

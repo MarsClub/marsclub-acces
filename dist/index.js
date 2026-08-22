@@ -10,5 +10,5 @@
  * personnes — qui vit dans la base d'Hora. Chacun garde ce qui lui est propre.
  */
 export { NIVEAUX, LIBELLE_NIVEAU, creerGarde, estNiveau, } from './niveaux.js';
-export { DUREE_IDENTITE_S, empreinte, lireIdentite, memeChaine, signerIdentite, } from './identite.js';
+export { DUREE_IDENTITE_S, empreinte, lireIdentite, lireIdentiteLaPlusRecente, memeChaine, signerIdentite, valeursDuCookie, } from './identite.js';
 export { COOKIE_ACCES, COOKIE_QUI, domaineCookies, estJeton } from './cookies.js';

@@ -104,3 +104,53 @@ export async function empreinte(secret: string): Promise<string> {
     .map((o) => o.toString(16).padStart(2, '0'))
     .join('')
 }
+
+/**
+ * Toutes les valeurs portées par un cookie d'un nom donné, dans l'en-tête brut.
+ *
+ * ⚠️ **Un navigateur peut en porter PLUSIEURS du même nom** — c'est le piège
+ * du 22/08/2026. Une identité posée sans domaine (attachée à
+ * `planning.marsclub.fr`) et une autre posée sur `.marsclub.fr` coexistent :
+ * les deux partent dans la requête, et l'API standard n'en rend qu'une, la
+ * première. Résultat vécu : suivre le lien personnel de quelqu'un d'autre
+ * laissait identifié comme soi-même, sans le moindre signe.
+ *
+ * On ne peut pas compter sur l'effacement pour s'en sortir : poser et effacer
+ * un cookie du même nom dans une seule réponse s'annulent l'un l'autre.
+ */
+export function valeursDuCookie(entete: string | null | undefined, nom: string): string[] {
+  if (!entete) return []
+  return entete
+    .split(';')
+    .map((part) => part.trim())
+    .filter((part) => part.startsWith(`${nom}=`))
+    .map((part) => part.slice(nom.length + 1))
+}
+
+/**
+ * L'identité la PLUS RÉCEMMENT posée parmi celles que porte la requête.
+ *
+ * C'est la seule lecture sûre quand plusieurs cookies du même nom coexistent :
+ * le dernier lien suivi doit l'emporter, sinon un cookie fantôme fige
+ * l'identité de quelqu'un d'autre. La fraîcheur se lit dans la valeur signée
+ * elle-même, donc elle n'est pas falsifiable sans le secret.
+ */
+export async function lireIdentiteLaPlusRecente(
+  entete: string | null | undefined,
+  nom: string,
+  secret: string,
+  maintenant: number,
+): Promise<Identite | null> {
+  let meilleure: Identite | null = null
+  let plusRecent = -1
+  for (const valeur of valeursDuCookie(entete, nom)) {
+    const identite = await lireIdentite(valeur, secret, maintenant)
+    if (!identite) continue
+    const emisLe = Number(valeur.split('.')[2])
+    if (Number.isFinite(emisLe) && emisLe > plusRecent) {
+      plusRecent = emisLe
+      meilleure = identite
+    }
+  }
+  return meilleure
+}

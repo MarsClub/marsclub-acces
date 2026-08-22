@@ -8,6 +8,8 @@ import {
   estJeton,
   estNiveau,
   lireIdentite,
+  lireIdentiteLaPlusRecente,
+  valeursDuCookie,
   signerIdentite,
   type Niveau,
 } from './index.js'
@@ -120,5 +122,43 @@ describe('les cookies communs', () => {
   it('valident la forme d’un jeton avant toute lecture en base', () => {
     expect(estJeton('57408685-c21c-405c-8b86-5cb6a6dc6e91')).toBe(true)
     expect(estJeton('devine')).toBe(false)
+  })
+})
+
+describe('le cookie fantôme (22/08/2026)', () => {
+  it('un navigateur peut porter deux cookies du même nom', () => {
+    expect(valeursDuCookie('mc_qui=aaa; autre=x; mc_qui=bbb', 'mc_qui')).toEqual(['aaa', 'bbb'])
+    expect(valeursDuCookie('', 'mc_qui')).toEqual([])
+    expect(valeursDuCookie(null, 'mc_qui')).toEqual([])
+  })
+
+  it('c’est le dernier lien suivi qui l’emporte, pas le premier cookie', async () => {
+    // Le cas vécu : une identité ancienne posée sans domaine masquait celle
+    // que venait de poser un lien personnel. Le plus récent doit gagner.
+    const ancien = await signerIdentite(MOI, SECRET, QUAND)
+    const autre = { personneId: 'c1c1c1c1-2222-3333-4444-555555555555', niveau: 'equipe' as const }
+    const recent = await signerIdentite(autre, SECRET, QUAND + 60_000)
+    const lu = await lireIdentiteLaPlusRecente(
+      `mc_qui=${ancien}; mc_qui=${recent}`,
+      'mc_qui',
+      SECRET,
+      QUAND + 120_000,
+    )
+    expect(lu).toEqual(autre)
+  })
+
+  it('ignore une valeur mal signée sans se laisser distraire', async () => {
+    const bon = await signerIdentite(MOI, SECRET, QUAND)
+    const lu = await lireIdentiteLaPlusRecente(
+      `mc_qui=nimportequoi; mc_qui=${bon}`,
+      'mc_qui',
+      SECRET,
+      QUAND + 1000,
+    )
+    expect(lu).toEqual(MOI)
+  })
+
+  it('rend null quand aucune valeur ne tient', async () => {
+    expect(await lireIdentiteLaPlusRecente('mc_qui=faux', 'mc_qui', SECRET, QUAND)).toBe(null)
   })
 })
